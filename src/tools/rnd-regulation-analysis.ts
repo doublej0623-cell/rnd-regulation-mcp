@@ -53,35 +53,41 @@ function watchlistPrevious(laws: WatchLaw[]): Record<string, string> {
 
 function parseChangedLaws(text: string): ChangedLaw[] {
   const rows: ChangedLaw[] = []
+  let context: { name: string; lawId: string; currentMst: string } | undefined
 
-  const currentRe = /^△\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+MST\s+(\d+)\s+→\s+(\d+)/gm
-  let match: RegExpExecArray | null
-  while ((match = currentRe.exec(text)) !== null) {
-    rows.push({
-      name: match[1].trim(),
-      lawId: match[2],
-      previousMst: match[3],
-      currentMst: match[4],
-      kind: "current",
-    })
-  }
-
-  const upcomingBlockRe = /^🔜\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+본문 동일\(MST\s+(\d+)\)\s+—\s+시행예정 있음\n((?:\s+🔜.*\n?)*)/gm
-  while ((match = upcomingBlockRe.exec(text)) !== null) {
-    const name = match[1].trim()
-    const lawId = match[2]
-    const currentMst = match[3]
-    const block = match[4]
-    const futureMsts = [...block.matchAll(/\(MST\s+(\d+),/g)].map(m => m[1])
-    for (const futureMst of futureMsts) {
+  for (const line of text.split("\n")) {
+    const current = line.match(/^△\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+MST\s+(\d+)\s+→\s+(\d+)/)
+    if (current) {
+      context = { name: current[1].trim(), lawId: current[2], currentMst: current[4] }
       rows.push({
-        name,
-        lawId,
-        previousMst: currentMst,
-        currentMst: futureMst,
+        name: context.name,
+        lawId: context.lawId,
+        previousMst: current[3],
+        currentMst: context.currentMst,
+        kind: "current",
+      })
+      continue
+    }
+
+    const upcomingHeader = line.match(/^🔜\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+본문 동일\(MST\s+(\d+)\)\s+—\s+시행예정 있음/)
+    if (upcomingHeader) {
+      context = { name: upcomingHeader[1].trim(), lawId: upcomingHeader[2], currentMst: upcomingHeader[3] }
+      continue
+    }
+
+    const upcoming = line.match(/^\s+🔜.*\(MST\s+(\d+),/)
+    if (upcoming && context) {
+      rows.push({
+        name: context.name,
+        lawId: context.lawId,
+        previousMst: context.currentMst,
+        currentMst: upcoming[1],
         kind: "upcoming",
       })
+      continue
     }
+
+    if (/^[△＋？🔜]/.test(line)) context = undefined
   }
 
   return rows
