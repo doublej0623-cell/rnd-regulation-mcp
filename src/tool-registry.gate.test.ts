@@ -96,7 +96,7 @@ describe("registerTools 게이트 배선", () => {
     const client = await connect({})
     const first = await client.listTools()
     const second = await client.listTools()
-    expect(first.tools.length).toBe(10)
+    expect(first.tools.length).toBe(11)
     expect(second).toEqual(first)
   })
 })
