@@ -40,6 +40,7 @@ interface ChangedLaw {
   lawId: string
   previousMst: string
   currentMst: string
+  kind: "current" | "upcoming"
 }
 
 function responseText(result: LooseToolResponse): string {
@@ -52,22 +53,44 @@ function watchlistPrevious(laws: WatchLaw[]): Record<string, string> {
 
 function parseChangedLaws(text: string): ChangedLaw[] {
   const rows: ChangedLaw[] = []
-  const re = /^△\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+MST\s+(\d+)\s+→\s+(\d+)/gm
+
+  const currentRe = /^△\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+MST\s+(\d+)\s+→\s+(\d+)/gm
   let match: RegExpExecArray | null
-  while ((match = re.exec(text)) !== null) {
+  while ((match = currentRe.exec(text)) !== null) {
     rows.push({
       name: match[1].trim(),
       lawId: match[2],
       previousMst: match[3],
       currentMst: match[4],
+      kind: "current",
     })
   }
+
+  const upcomingBlockRe = /^🔜\s+(.+?)\s+\|\s+ID\s+(\d+)\s+\|\s+본문 동일\(MST\s+(\d+)\)\s+—\s+시행예정 있음\n((?:\s+🔜.*\n?)*)/gm
+  while ((match = upcomingBlockRe.exec(text)) !== null) {
+    const name = match[1].trim()
+    const lawId = match[2]
+    const currentMst = match[3]
+    const block = match[4]
+    const futureMsts = [...block.matchAll(/\(MST\s+(\d+),/g)].map(m => m[1])
+    for (const futureMst of futureMsts) {
+      rows.push({
+        name,
+        lawId,
+        previousMst: currentMst,
+        currentMst: futureMst,
+        kind: "upcoming",
+      })
+    }
+  }
+
   return rows
 }
 
-function parseCurrentIdentity(text: string): { lawId?: string; mst?: string } {
+function parseCurrentIdentity(text: string): { lawId?: string; mst?: string; upcomingMsts: string[] } {
   const m = text.match(/ID\s+(\d+)\s+\|\s+MST\s+(\d+)/)
-  return m ? { lawId: m[1], mst: m[2] } : {}
+  const upcomingMsts = [...text.matchAll(/시행예정[^\n]*\(MST\s+(\d+),/g)].map(match => match[1])
+  return m ? { lawId: m[1], mst: m[2], upcomingMsts } : { upcomingMsts }
 }
 
 function preliminaryClassification(text: string, rules: ImpactRulesConfig): string {
@@ -167,8 +190,21 @@ export async function rndRegulationAnalysis(
         apiKey: input.apiKey,
       })
       const amendmentText = responseText(amendment)
+      const upcomingSections: string[] = []
+      for (const upcomingMst of identity.upcomingMsts.slice(0, input.maxDetailed)) {
+        const upcoming = await chainAmendmentTrack(apiClient, {
+          query: input.lawName,
+          mst: upcomingMst,
+          lawId: identity.lawId,
+          includeHistory: false,
+          apiKey: input.apiKey,
+        })
+        upcomingSections.push(`[시행예정 MST ${upcomingMst}]\n${responseText(upcoming)}`)
+      }
+
+      const evidenceText = [amendmentText, ...upcomingSections].join("\n\n")
       const verify = input.verifyEvidence ?? true
-      const verificationText = await verifyIfRequested(apiClient, amendmentText, verify, input.apiKey)
+      const verificationText = await verifyIfRequested(apiClient, evidenceText, verify, input.apiKey)
 
       const body = [
         "═══ R&D 규제 정밀분석 원자료 ═══",
@@ -178,7 +214,8 @@ export async function rndRegulationAnalysis(
         changeCheck ? "\n▶ Watchlist 기준 변경 여부\n" + changeCheck : "",
         "\n▶ 최근 개정 추적 / 신구대조",
         amendmentText,
-        `\n▶ 규칙 기반 1차 분류\n${preliminaryClassification(amendmentText + "\n" + currentText, policy.impactRules)}`,
+        upcomingSections.length > 0 ? "\n▶ 시행예정 개정 상세\n" + upcomingSections.join("\n\n") : "",
+        `\n▶ 규칙 기반 1차 분류\n${preliminaryClassification(evidenceText + "\n" + currentText, policy.impactRules)}`,
         verificationText ? "\n▶ 인용 검증\n" + verificationText : "",
         "\n" + policyFooter(input.focus, policy.impactRules, policy.outputSchema),
       ].filter(Boolean).join("\n")
@@ -209,7 +246,7 @@ export async function rndRegulationAnalysis(
       const verify = input.verifyEvidence ?? false
       const verificationText = await verifyIfRequested(apiClient, amendmentText, verify, input.apiKey)
       detailSections.push([
-        `▶ ${law.name} 상세 (MST ${law.previousMst} → ${law.currentMst})`,
+        `▶ ${law.name} ${law.kind === "upcoming" ? "시행예정" : "현행 변경"} 상세 (MST ${law.previousMst} → ${law.currentMst})`,
         amendmentText,
         `규칙 기반 1차 분류: ${preliminaryClassification(amendmentText, policy.impactRules)}`,
         verificationText ? "인용 검증:\n" + verificationText : "",
