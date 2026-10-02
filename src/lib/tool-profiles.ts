@@ -21,6 +21,7 @@
 export const V3_EXPOSED = new Set([
   "legal_research",   // v4.4.0: chain_* 8개 통합 (task 파라미터)
   "legal_analysis",   // v4.4.0: verify_citations/cite_check/applicable_law/impact_map 통합 (mode 파라미터)
+  "rnd_regulation_analysis", // 회사 R&D 법령 Watchlist 변경점검·영향분석
   "search_law", "get_law_text",
   "get_annexes",
   "search_decisions", "get_decision_text",
@@ -80,6 +81,7 @@ export const TOOL_ALIASES: Record<string, string[]> = {
   "판례생사": ["cite_check", "판례 유효성", "판례 변경 여부", "인용 추적", "citator"],
   "행위시법": ["applicable_law", "당시 법령", "적용 법령 판단", "경과조치", "부칙"],
   "영향그래프": ["impact_map", "조문 영향", "파급효과", "인용한 판례"],
+  "R&D 규제분석": ["rnd_regulation_analysis", "연구소 법령 변경", "규제 변경 점검", "법령 Watchlist", "환경안전 법령 모니터링"],
   "문서분석": ["analyze_document", "chain_document_review", "계약서 검토", "약관 검토"],
   "처분기준": ["chain_action_basis", "과태료 기준", "과징금 기준", "영업정지 기간"],
   "절차매뉴얼": ["chain_procedure_detail", "처리 절차", "신청 방법", "수수료"],
@@ -126,6 +128,7 @@ export const TOOL_CATEGORIES: Record<string, string[]> = {
   // legal_analysis 의 네 mode 에 대응하는 카테고리도 같은 정책을 따른다 —
   // 별칭이 곧 mode 의도라 1-hop 진입점이 답이고, 원본 도구는 하위호환 병기다.
   "정밀분석": ["legal_analysis"],
+  "R&D 규제분석": ["rnd_regulation_analysis"],
   "인용검증": ["legal_analysis", "verify_citations"],
   "판례생사": ["legal_analysis", "cite_check"],
   "행위시법": ["legal_analysis", "applicable_law"],
