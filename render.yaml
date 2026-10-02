@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: rnd-regulation-mcp
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: LAW_OC
+        sync: false
+      - key: MCP_AUTH_TOKEN
+        sync: false
+      - key: MCP_HTTP_HOST
+        value: 0.0.0.0
+      - key: ALLOW_QUERY_API_KEY
+        value: "0"
