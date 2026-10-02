@@ -14,6 +14,7 @@ RUN npm ci --ignore-scripts --omit=optional
 
 COPY src ./src
 COPY scripts ./scripts
+COPY company-config ./company-config
 COPY tsconfig.json ./
 
 RUN npm run build
@@ -30,6 +31,7 @@ WORKDIR /app
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/company-config ./company-config
 
 RUN chown -R appuser:appgroup /app
 
