@@ -47,6 +47,8 @@ ENV PORT=3000
 ENV MCP_HTTP_HOST=0.0.0.0
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider "http://localhost:${PORT:-3000}/health" || exit 1
 
-CMD ["node", "build/index.js", "--mode", "sse", "--port", "3000"]
+# Cloud platforms such as Render inject PORT at runtime. Keep 3000 as the
+# local/container fallback while honoring the platform-provided port.
+CMD ["sh", "-c", "node build/index.js --mode sse --port ${PORT:-3000}"]
