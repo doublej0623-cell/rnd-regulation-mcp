@@ -70,6 +70,7 @@ import { applicableLaw, ApplicableLawSchema } from "./tools/applicable-law.js"
 // 통합 진입점 (v4.4.0 — 노출 도구 수 축소용)
 import { legalResearch, LegalResearchSchema } from "./tools/legal-research.js"
 import { legalAnalysis, LegalAnalysisSchema } from "./tools/legal-analysis.js"
+import { rndRegulationAnalysis, RndRegulationAnalysisSchema } from "./tools/rnd-regulation-analysis.js"
 // Chain tool imports
 import {
   chainLawSystem, chainLawSystemSchema,
@@ -86,6 +87,14 @@ import {
  * 모든 MCP 도구 정의
  */
 export const allTools: McpTool[] = [
+  // === 회사 R&D 규제 모니터링 ===
+  {
+    name: "rnd_regulation_analysis",
+    description: "[회사 R&D 규제점검] company-config Watchlist를 기준으로 법령 MST 변경·시행예정을 감지하고, 변경 법령은 신구대조 후 회사 영향규칙으로 1차 분류한다. mode=scan_all은 전체 Watchlist, analyze_one은 특정 법령. 최종 연구소 적용성 판단은 원문 근거와 AI/담당자 검토를 분리해 수행한다.",
+    schema: RndRegulationAnalysisSchema,
+    handler: rndRegulationAnalysis
+  },
+
   // === 법령 검색/조회 ===
   {
     name: "search_law",
