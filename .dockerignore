@@ -10,3 +10,6 @@ README.md
 .vscode
 .idea
 *.md
+
+# R&D regulation runtime policy
+!company-config/output-schema.md

@@ -90,7 +90,7 @@ export function verifyPackageArtifacts() {
   const allowedTopLevel = new Set(["README.md", "LICENSE", "NOTICE", "package.json"])
   const files = packedFiles()
   for (const file of files) {
-    assert(file.startsWith("build/") || allowedTopLevel.has(file), `Unexpected packed artifact: ${file}`)
+    assert(file.startsWith("build/") || file.startsWith("company-config/") || allowedTopLevel.has(file), `Unexpected packed artifact: ${file}`)
     assert(!file.includes("sse-server"), `Stale server artifact would be published: ${file}`)
   }
 
