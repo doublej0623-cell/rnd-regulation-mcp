@@ -19,6 +19,7 @@
  *    별표 3의2를 가져오려 discover_tools × 2 + execute_tool 헛발질로 ~15초 손실.
  */
 export const V3_EXPOSED = new Set([
+  "rnd_regulation_analysis", // company R&D regulation watchlist orchestrator
   "legal_research",   // v4.4.0: chain_* 8개 통합 (task 파라미터)
   "legal_analysis",   // v4.4.0: verify_citations/cite_check/applicable_law/impact_map 통합 (mode 파라미터)
   "search_law", "get_law_text",
@@ -55,6 +56,9 @@ export function describeCallPath(listed: Set<string>): string {
  *    src/tools/meta-tools.test.ts의 정합 테스트가 이 불변식을 지킨다.
  */
 export const TOOL_ALIASES: Record<string, string[]> = {
+  // 회사 R&D 규제 모니터링
+  "연구소규제": ["연구소 법령", "R&D 법령", "환경안전 법령", "법령 변경 점검", "규제 모니터링", "준법 등록부"],
+
   // 카테고리명 별칭
   "조세심판": ["조세심판원", "세금심판", "세금 이의", "조세불복", "조세심판례"],
   "관세": ["관세청", "통관", "FTA", "원산지", "관세해석", "수출입"],
@@ -87,6 +91,7 @@ export const TOOL_ALIASES: Record<string, string[]> = {
 
 /** 도구 카테고리 매핑 (discover_tools용) */
 export const TOOL_CATEGORIES: Record<string, string[]> = {
+  "연구소규제": ["rnd_regulation_analysis"],
   "법령검색": ["search_law", "search_law_bulk", "search_all", "advanced_search", "suggest_law_names", "search_ai_law"],
   "법령조회": ["get_law_text", "get_article_detail", "get_batch_articles", "get_article_with_precedents"],
   "행정규칙": ["search_admin_rule", "get_admin_rule", "compare_admin_rule_old_new"],
