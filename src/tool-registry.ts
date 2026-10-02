@@ -70,6 +70,7 @@ import { applicableLaw, ApplicableLawSchema } from "./tools/applicable-law.js"
 // 통합 진입점 (v4.4.0 — 노출 도구 수 축소용)
 import { legalResearch, LegalResearchSchema } from "./tools/legal-research.js"
 import { legalAnalysis, LegalAnalysisSchema } from "./tools/legal-analysis.js"
+import { rndRegulationAnalysis, RndRegulationAnalysisSchema } from "./tools/rnd-regulation-analysis.js"
 // Chain tool imports
 import {
   chainLawSystem, chainLawSystemSchema,
@@ -612,6 +613,12 @@ export const allTools: McpTool[] = [
     description: "[⛓리서치] 다단계 법령 리서치 통합 — 여러 API를 병렬로 엮는 복합 질문 전용. task: full_research=도메인·법령명 불명확한 자연어 질문 폴백(기본값, 예 '음주운전 처벌 기준') | law_system=법률·시행령·시행규칙 3단+위임+별표(예 '관세법 체계') | action_basis=처분·허가의 법적 근거+해석례+판례+행심(예 '영업정지 근거') | dispute_prep=불복·소송 준비, 판례+심판례+도메인 결정례(예 '과세처분 불복') | amendment_track=개정 이력+신구대조+연혁(예 '2023년 개정 뭐 바뀜') | ordinance_compare=조례 전국 비교+상위법 적합성(예 '서울시 주차 조례') | procedure_detail=절차·수수료·별표서식(예 '건축허가 절차') | document_review=계약서·약관 조항 리스크+근거법령(text 필수). scenario(선택): 확장 시나리오 — time_travel(두 시점 본문 diff)·timeline·penalty·action_plan·delegation·impact·compliance·customs·manual. 미지정 시 쿼리에서 자동 감지되며, task별 호환 조합은 scenario 파라미터 설명 참조. 단일 조회로 답이 되면 search_law/get_law_text 쓸 것.",
     schema: LegalResearchSchema,
     handler: legalResearch
+  },
+  {
+    name: "rnd_regulation_analysis",
+    description: "[R&D 규제분석] 회사 Watchlist 기반 규제변경 점검·개정추적·근거검증·연구소 영향분석 오케스트레이션. mode=scan_all은 company-config/watchlist.json 전체를 MST diff로 점검하고 변경 법령만 상세 분석, mode=analyze_one은 특정 법령을 정밀분석. 회사 impact-rules와 output-schema를 적용해 원문 사실과 AI 분석을 분리한다.",
+    schema: RndRegulationAnalysisSchema,
+    handler: rndRegulationAnalysis
   },
   {
     name: "legal_analysis",
